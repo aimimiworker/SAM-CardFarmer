@@ -74,10 +74,10 @@ To idle Steam Trading Cards, conventional methods usually require:
    - Open your badges page in any web browser: [https://steamcommunity.com/my/badges](https://steamcommunity.com/my/badges)
    - Press <kbd>Ctrl</kbd> + <kbd>S</kbd> (or right-click ➔ *Save As...*) and save the HTML file anywhere (e.g. Downloads or Desktop).
 
-2. **Step 2: Place & Launch SAM Card Farmer**
-   - Place `SAM.CardFarmer.exe` inside your **Steam Achievement Manager** folder (next to `SAM.Game.exe`).
+2. **Step 2: Launch SAM Card Farmer (SAM included out-of-the-box!)**
+   - The archive and repository already come bundled with Steam Achievement Manager (`SAM.Game.exe`, `SAM.Picker.exe`, `SAM.API.dll`).
    - Run `SAM.CardFarmer.exe`.
-   - **Drag & drop** the saved HTML file into the program window (or click the green *«📂 Open HTML File»* button).
+   - **Drag & drop** the saved HTML file into the program window (or click *«📂 Open HTML File»*). The app remembers the file for subsequent launches!
 
 3. **Step 3: Start Idling**
    - Click **«🚀 START IDLE (BACKGROUND)»**.
@@ -118,9 +118,10 @@ To idle Steam Trading Cards, conventional methods usually require:
    - Откройте в браузере страницу ваших значков: [https://steamcommunity.com/my/badges](https://steamcommunity.com/my/badges)
    - Нажмите сочетание клавиш <kbd>Ctrl</kbd> + <kbd>S</kbd> и сохраните HTML-страницу в любую папку.
 
-2. **Шаг 2: Поместить в папку с SAM и открыть файл**
-   - Поместите `SAM.CardFarmer.exe` в папку со **Steam Achievement Manager** (рядом с `SAM.Game.exe`).
-   - Запустите программу и **перетащите сохранённый HTML-файл мышкой** прямо в окно.
+2. **Шаг 2: Запустить программу (SAM уже встроен в комплект!)**
+   - В архиве и репозитории уже есть все необходимые файлы Steam Achievement Manager (`SAM.Game.exe`, `SAM.Picker.exe`, `SAM.API.dll`). Ничего дополнительно искать и качать не нужно!
+   - Запустите `SAM.CardFarmer.exe`.
+   - **Перетащите сохранённый HTML-файл мышкой** прямо в окно (или выберите через кнопку). Программа запомнит его для всех будущих запусков!
 
 3. **Шаг 3: Нажать запуск**
    - Нажмите большую зелёную кнопку **«🚀 ЗАПУСТИТЬ ФАРМ (В ФОНЕ)»**.
