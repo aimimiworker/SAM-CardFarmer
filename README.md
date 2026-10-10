@@ -6,11 +6,12 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Release-v1.01-brightgreen?logo=github&logoColor=white" alt="Release v1.01">
   <img src="https://img.shields.io/badge/Vibe%20Coded%20with-Google%20Antigravity-4285F4?logo=google&logoColor=white" alt="Vibe Coded with Google Antigravity">
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white" alt="Platform">
   <img src="https://img.shields.io/badge/Language-C%23-239120?logo=csharp&logoColor=white" alt="Language">
   <img src="https://img.shields.io/badge/.NET-4.0%20%7C%204.7.2%20%7C%204.8%20%7C%208.0-512BD4?logo=dotnet&logoColor=white" alt=".NET">
-  <img src="https://img.shields.io/badge/Size-~40%20KB-orange" alt="Size">
+  <img src="https://img.shields.io/badge/Size-~43%20KB-orange" alt="Size">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
   <img src="https://img.shields.io/badge/Privacy-100%25%20Offline%20Safe-success" alt="Privacy">
 </p>
@@ -55,6 +56,8 @@ To idle Steam Trading Cards, conventional methods usually require:
 ---
 
 ### ✨ Features
+- 🌐 **Dual-Language Interface (English / Русский):** English is default on startup! Switch instantly between English and Russian with one click of the top bar language toggle button.
+- 💾 **Auto-Remembers Selected Badges File:** Never re-select or drag your HTML file every time — the app automatically remembers and restores your last loaded badges file on launch!
 - 🚀 **Zero Downloads (0 MB Disk Usage):** Signals Steam that games are running via SAM without downloading or installing a single game file.
 - 🔒 **100% Privacy & Zero Cookies:** Detects available card drops simply by parsing your saved Steam Badges HTML file (`Ctrl + S` in any browser). No logins, no cookies, no token extraction.
 - 🪟 **Hidden Background Idling (`SW_HIDE`):** Suppresses and hides all SAM GUI windows automatically. Games idle silently in the background with ~15 MB RAM usage and near-zero CPU/GPU impact.
@@ -97,12 +100,14 @@ To idle Steam Trading Cards, conventional methods usually require:
 ---
 
 ### ✨ Ключевые возможности
+- 🌐 **Двуязычный интерфейс (English / Русский):** Английский язык включён по умолчанию при запуске. Переключайтесь между английским и русским в один клик кнопкой в верхней панели!
+- 💾 **Запоминание выбранного HTML-файла:** Больше не нужно выбирать или перетаскивать файл заново после каждого перезапуска — программа запоминает ваш последний файл значков и загружает его автоматически!
 - 🚀 **0 байт скачивания:** Игры **НЕ нужно скачивать и устанавливать**. Программа отправляет сигнал в Steam через SAM, что игра активна.
 - 🔒 **100% Безопасность и отсутствие куки:** Читает только сохранённую вами HTML-страницу значков. Никаких паролей, токенов, куки браузера или доступа к аккаунту.
 - 🪟 **Скрытый фоновый режим (`SW_HIDE`):** Полностью скрывает графические окна `SAM.Game.exe`. Процессы потребляют минимум оперативной памяти (~15 МБ) и не нагружают видеокарту и процессор отрисовкой картинок.
 - 🔄 **Авто-перезапуск по таймеру (по умолчанию 20 мин):** Программа мягко перезапускает игры по таймеру, что сбрасывает зависшие сессии Steam и стимулирует выпадение карточек.
 - ⚡ **Авто-слежение за файлом:** Программа непрерывно отслеживает файл значков. Выпали карточки? Нажмите <kbd>Ctrl</kbd> + <kbd>S</kbd> в браузере снова — список обновится сам!
-- 📦 **Один портативный файл (~40 КБ):** Без установки, без сторонних DLL. Работает на любой Windows с .NET Framework 4.0+.
+- 📦 **Один портативный файл (~43 КБ):** Без установки, без сторонних DLL. Работает на любой Windows с .NET Framework 4.0+.
 - 📊 **Полный контроль и статистика:** Поиск по названию или AppID, сортировка по оставшимся карточкам, запуск отдельных игр по правому клику, корректное завершение всех процессов при выходе.
 
 ---

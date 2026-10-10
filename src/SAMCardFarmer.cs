@@ -21,12 +21,12 @@ namespace SAMCardFarmer
         public int DropsRemaining { get; set; }
         public string Status { get; set; }
 
-        public BadgeGame(int appId, string title, int drops)
+        public BadgeGame(int appId, string title, int drops, string initialStatus = "Ready")
         {
             AppId = appId;
             Title = title;
             DropsRemaining = drops;
-            Status = "Готова к запуску";
+            Status = initialStatus;
         }
     }
 
@@ -139,6 +139,12 @@ namespace SAMCardFarmer
         private Button btnOpenFile;
         private Button btnOpenBrowserBadges;
         private Button btnHelp;
+        private Button btnLang;
+        private Label lblHint;
+        private Label lblHint2;
+        private Label lblFilter;
+        private string currentLang = "en";
+        private bool hasCustomCliFile = false;
         private TextBox txtSearch;
         private ListView lvGames;
         private Button btnSelectAll;
@@ -173,11 +179,18 @@ namespace SAMCardFarmer
             try { SetProcessDPIAware(); } catch { }
             InitializeComponent();
             FindSamExecutable();
+            LoadConfiguredLanguage();
+            this.Shown += (s, e) => {
+                if (!hasCustomCliFile)
+                {
+                    LoadLastUsedBadgesFile();
+                }
+            };
         }
 
         private void InitializeComponent()
         {
-            this.Text = "SAM Card Farmer — Автозапуск игр Steam с карточками";
+            this.Text = "SAM Card Farmer v1.01 - Steam Trading Card Idler";
             this.Size = new Size(1020, 780);
             this.MinimumSize = new Size(880, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -195,20 +208,20 @@ namespace SAMCardFarmer
             topPanel.AllowDrop = true;
 
             btnOpenFile = new Button();
-            btnOpenFile.Text = "📂 ОТКРЫТЬ HTML-ФАЙЛ ЗНАЧКОВ";
+            btnOpenFile.Text = "📂 OPEN BADGES HTML FILE";
             btnOpenFile.Location = new Point(12, 10);
-            btnOpenFile.Size = new Size(370, 46);
+            btnOpenFile.Size = new Size(310, 46);
             btnOpenFile.BackColor = Color.FromArgb(46, 139, 87);
             btnOpenFile.ForeColor = Color.White;
-            btnOpenFile.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+            btnOpenFile.Font = new Font("Segoe UI", 10f, FontStyle.Bold);
             btnOpenFile.FlatStyle = FlatStyle.Flat;
             btnOpenFile.Cursor = Cursors.Hand;
             btnOpenFile.Click += new EventHandler(BtnOpenFile_Click);
 
             btnOpenBrowserBadges = new Button();
-            btnOpenBrowserBadges.Text = "🌐 Открыть страницу значков в Steam";
-            btnOpenBrowserBadges.Location = new Point(392, 10);
-            btnOpenBrowserBadges.Size = new Size(330, 46);
+            btnOpenBrowserBadges.Text = "🌐 Open Badges in Steam";
+            btnOpenBrowserBadges.Location = new Point(328, 10);
+            btnOpenBrowserBadges.Size = new Size(265, 46);
             btnOpenBrowserBadges.BackColor = Color.FromArgb(41, 98, 144);
             btnOpenBrowserBadges.ForeColor = Color.White;
             btnOpenBrowserBadges.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
@@ -219,9 +232,9 @@ namespace SAMCardFarmer
             });
 
             btnHelp = new Button();
-            btnHelp.Text = "❓ ИНСТРУКЦИЯ (РУС / ENG)";
-            btnHelp.Location = new Point(732, 10);
-            btnHelp.Size = new Size(255, 46);
+            btnHelp.Text = "❓ GUIDE / HELP";
+            btnHelp.Location = new Point(600, 10);
+            btnHelp.Size = new Size(210, 46);
             btnHelp.BackColor = Color.FromArgb(142, 68, 173);
             btnHelp.ForeColor = Color.White;
             btnHelp.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
@@ -229,15 +242,29 @@ namespace SAMCardFarmer
             btnHelp.Cursor = Cursors.Hand;
             btnHelp.Click += new EventHandler(BtnHelp_Click);
 
-            Label lblHint = new Label();
-            lblHint.Text = "💡 КАК ПОЛЬЗОВАТЬСЯ: В браузере на странице значков нажмите Ctrl + S и просто перетащите файл мышкой в это окно!";
+            btnLang = new Button();
+            btnLang.Text = "🌐 RU (Русский)";
+            btnLang.Location = new Point(818, 10);
+            btnLang.Size = new Size(170, 46);
+            btnLang.BackColor = Color.FromArgb(52, 73, 94);
+            btnLang.ForeColor = Color.White;
+            btnLang.Font = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            btnLang.FlatStyle = FlatStyle.Flat;
+            btnLang.Cursor = Cursors.Hand;
+            btnLang.Click += new EventHandler((s, e) => {
+                string next = (currentLang == "en") ? "ru" : "en";
+                ApplyLanguage(next);
+            });
+
+            lblHint = new Label();
+            lblHint.Text = "💡 HOW TO USE: On your Steam badges page, press Ctrl + S and drag the saved HTML file into this window!";
             lblHint.Location = new Point(12, 63);
             lblHint.AutoSize = true;
             lblHint.ForeColor = Color.FromArgb(102, 192, 244);
             lblHint.Font = new Font("Segoe UI", 9.25f, FontStyle.Bold);
 
-            Label lblHint2 = new Label();
-            lblHint2.Text = "⚡ АВТО-СЛЕЖЕНИЕ: Программа автоматически следит за файлом — при повторном нажатии Ctrl + S в браузере список обновится сам!";
+            lblHint2 = new Label();
+            lblHint2.Text = "⚡ LIVE WATCHER: The app monitors the file — press Ctrl + S in your browser again and the list updates automatically!";
             lblHint2.Location = new Point(12, 86);
             lblHint2.AutoSize = true;
             lblHint2.ForeColor = Color.FromArgb(170, 185, 200);
@@ -246,6 +273,7 @@ namespace SAMCardFarmer
             topPanel.Controls.Add(btnOpenFile);
             topPanel.Controls.Add(btnOpenBrowserBadges);
             topPanel.Controls.Add(btnHelp);
+            topPanel.Controls.Add(btnLang);
             topPanel.Controls.Add(lblHint);
             topPanel.Controls.Add(lblHint2);
 
@@ -256,8 +284,8 @@ namespace SAMCardFarmer
             filterPanel.Padding = new Padding(12, 4, 12, 4);
             filterPanel.BackColor = Color.FromArgb(20, 23, 29);
 
-            Label lblFilter = new Label();
-            lblFilter.Text = "Поиск:";
+            lblFilter = new Label();
+            lblFilter.Text = "Search:";
             lblFilter.Location = new Point(12, 8);
             lblFilter.AutoSize = true;
             lblFilter.ForeColor = Color.FromArgb(170, 185, 200);
@@ -457,6 +485,91 @@ namespace SAMCardFarmer
             this.FormClosing += new FormClosingEventHandler(MainForm_FormClosing);
         }
 
+        private void LoadConfiguredLanguage()
+        {
+            ApplyLanguage("en");
+        }
+
+        private void ApplyLanguage(string lang)
+        {
+            currentLang = lang;
+            bool isRu = (lang == "ru");
+
+            this.Text = isRu ? "SAM Card Farmer v1.01 - Автозапуск игр Steam с карточками"
+                             : "SAM Card Farmer v1.01 - Steam Trading Card Idler";
+
+            btnOpenFile.Text = isRu ? "📂 ОТКРЫТЬ HTML-ФАЙЛ ЗНАЧКОВ"
+                                    : "📂 OPEN BADGES HTML FILE";
+
+            btnOpenBrowserBadges.Text = isRu ? "🌐 Открыть страницу значков в Steam"
+                                             : "🌐 Open Badges in Steam";
+
+            btnHelp.Text = isRu ? "❓ ИНСТРУКЦИЯ (РУС / ENG)"
+                                : "❓ GUIDE / HELP (RU / EN)";
+
+            btnLang.Text = isRu ? "🌐 EN (English)" : "🌐 RU (Русский)";
+
+            lblHint.Text = isRu ? "💡 КАК ПОЛЬЗОВАТЬСЯ: В браузере на странице значков нажмите Ctrl + S и перетащите сохранённый HTML-файл в это окно!"
+                                : "💡 HOW TO USE: On your Steam badges page, press Ctrl + S and drag the saved HTML file into this window!";
+
+            lblHint2.Text = isRu ? "⚡ АВТО-СЛЕЖЕНИЕ: Программа следит за файлом — при повторном сохранении (Ctrl + S) в браузере список обновится сам!"
+                                 : "⚡ LIVE WATCHER: The app monitors the file — press Ctrl + S in your browser again and the list updates automatically!";
+
+            lblFilter.Text = isRu ? "Поиск:" : "Search:";
+
+            if (lvGames.Columns.Count >= 4)
+            {
+                lvGames.Columns[0].Text = isRu ? "Игра" : "Game";
+                lvGames.Columns[1].Text = "AppID";
+                lvGames.Columns[2].Text = isRu ? "Осталось карточек" : "Cards Remaining";
+                lvGames.Columns[3].Text = isRu ? "Статус" : "Status";
+            }
+
+            btnSelectAll.Text = isRu ? "☑ Выбрать все" : "☑ Select All";
+            btnDeselectAll.Text = isRu ? "☐ Снять выбор" : "☐ Deselect All";
+            btnAddManual.Text = isRu ? "➕ Добавить AppID" : "➕ Add AppID";
+            lblRestartInterval.Text = isRu ? "Авто-перезапуск каждые (мин):" : "Auto-restart every (min):";
+            lblRestartHint.Text = isRu ? "(0 = выключен)" : "(0 = disabled)";
+            btnLaunchAll.Text = isRu ? "🚀 ЗАПУСТИТЬ ФАРМ (В ФОНЕ)" : "🚀 START IDLE (BACKGROUND)";
+            btnStopAll.Text = isRu ? "⏹ ОСТАНОВИТЬ ВСЕ" : "⏹ STOP ALL";
+
+            if (cmsGames != null && cmsGames.Items.Count >= 8)
+            {
+                cmsGames.Items[0].Text = isRu ? "▶ Запустить эту игру" : "▶ Idle this game";
+                cmsGames.Items[1].Text = isRu ? "⏹ Остановить эту игру" : "⏹ Stop this game";
+                cmsGames.Items[3].Text = isRu ? "📋 Скопировать AppID" : "📋 Copy AppID";
+                cmsGames.Items[4].Text = isRu ? "🃏 Открыть значок в браузере" : "🃏 Open badge in browser";
+                cmsGames.Items[5].Text = isRu ? "🌐 Открыть страницу в магазине" : "🌐 Open store page";
+                cmsGames.Items[7].Text = isRu ? "❌ Исключить из списка" : "❌ Remove from list";
+            }
+
+            statusLabel.Text = isRu ? "Готов к работе. Перетащите сохранённый HTML-файл значков в окно."
+                                    : "Ready. Drag and drop saved Steam badges HTML file into this window.";
+
+            UpdateSamStatus(File.Exists(samPath));
+            UpdateStats();
+            ApplyFilter();
+        }
+
+        private void LoadLastUsedBadgesFile()
+        {
+            try
+            {
+                string cfg = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "last_badges.cfg");
+                if (File.Exists(cfg))
+                {
+                    string saved = File.ReadAllText(cfg, Encoding.UTF8).Trim();
+                    if (!string.IsNullOrEmpty(saved) && File.Exists(saved))
+                    {
+                        Log(currentLang == "ru" ? "Загружен ранее выбранный файл значков: " + Path.GetFileName(saved)
+                                                : "Auto-loaded previously selected badges file: " + Path.GetFileName(saved));
+                        LoadHtmlFromFile(saved);
+                    }
+                }
+            }
+            catch { }
+        }
+
         private void Log(string message)
         {
             if (rtbLog.InvokeRequired)
@@ -541,14 +654,17 @@ namespace SAMCardFarmer
 
         private void UpdateSamStatus(bool found)
         {
+            bool isRu = (currentLang == "ru");
             if (found)
             {
-                samStatusLabel.Text = "SAM: Готов (" + Path.GetFileName(samPath) + ")";
+                samStatusLabel.Text = isRu ? ("SAM: Готов (" + Path.GetFileName(samPath) + ")")
+                                           : ("SAM: Ready (" + Path.GetFileName(samPath) + ")");
                 samStatusLabel.ForeColor = Color.FromArgb(46, 204, 113);
             }
             else
             {
-                samStatusLabel.Text = "SAM: Не найден (кликните чтобы указать)";
+                samStatusLabel.Text = isRu ? "SAM: Не найден (кликните чтобы указать)"
+                                           : "SAM: Not found (click to locate SAM.Game.exe)";
                 samStatusLabel.ForeColor = Color.FromArgb(231, 76, 60);
             }
         }
@@ -652,6 +768,11 @@ namespace SAMCardFarmer
 
                 if (!isAutoReload)
                 {
+                    try
+                    {
+                        File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "last_badges.cfg"), filePath, Encoding.UTF8);
+                    }
+                    catch { }
                     SetupFileWatcher(filePath);
                 }
             }
@@ -762,17 +883,26 @@ namespace SAMCardFarmer
         {
             try
             {
-                string helpFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ИНСТРУКЦИЯ.html");
+                string targetGuide = (currentLang == "ru") ? "ИНСТРУКЦИЯ.html" : "GUIDE.html";
+                string helpFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, targetGuide);
                 if (File.Exists(helpFile))
                 {
                     Process.Start(helpFile);
                     return;
                 }
 
-                string localFile = Path.Combine(Directory.GetCurrentDirectory(), "ИНСТРУКЦИЯ.html");
+                string localFile = Path.Combine(Directory.GetCurrentDirectory(), targetGuide);
                 if (File.Exists(localFile))
                 {
                     Process.Start(localFile);
+                    return;
+                }
+
+                string fallbackGuide = (currentLang == "ru") ? "GUIDE.html" : "ИНСТРУКЦИЯ.html";
+                string fallbackPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fallbackGuide);
+                if (File.Exists(fallbackPath))
+                {
+                    Process.Start(fallbackPath);
                     return;
                 }
 
@@ -887,8 +1017,9 @@ namespace SAMCardFarmer
                 }
             }
 
-            lblCountInfo.Text = string.Format("Игр: {0} | Выбрано: {1} | Карточек к выпадению: {2} шт. | Запущено: {3}",
-                allLoadedGames.Count, checkedCount, totalDrops, runningProcesses.Count);
+            lblCountInfo.Text = (currentLang == "ru")
+                ? string.Format("Игр: {0} | Выбрано: {1} | Карточек: {2} шт. | Запущено: {3}", allLoadedGames.Count, checkedCount, totalDrops, runningProcesses.Count)
+                : string.Format("Games: {0} | Selected: {1} | Drops remaining: {2} | Running: {3}", allLoadedGames.Count, checkedCount, totalDrops, runningProcesses.Count);
         }
 
         private void ApplyFilter()
@@ -903,7 +1034,7 @@ namespace SAMCardFarmer
                 {
                     ListViewItem item = new ListViewItem(g.Title);
                     item.SubItems.Add(g.AppId.ToString());
-                    item.SubItems.Add(string.Format("Осталось: {0}", g.DropsRemaining));
+                    item.SubItems.Add((currentLang == "ru") ? string.Format("Осталось: {0}", g.DropsRemaining) : string.Format("Remaining: {0}", g.DropsRemaining));
                     item.SubItems.Add(g.Status);
                     item.Tag = g;
                     item.Checked = true;
@@ -1358,6 +1489,7 @@ namespace SAMCardFarmer
 
         public void LoadHtmlFileOnStartup(string path)
         {
+            hasCustomCliFile = true;
             this.Shown += new EventHandler((s, e) =>
             {
                 if (File.Exists(path))
