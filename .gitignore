@@ -8,6 +8,7 @@ obj/
 .vs/
 
 # Config files with local paths
+*.cfg
 sam_path.cfg
 
 # OS generated files
@@ -24,5 +25,3 @@ releases/
 
 # Logs
 *.log
-
-upload_to_github.bat

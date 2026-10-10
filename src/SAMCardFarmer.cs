@@ -21,8 +21,8 @@ using System.Windows.Forms;
 [assembly: AssemblyCopyright("Copyright (c) 2026 Open Source Community")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyFileVersion("1.0.2.0")]
 
 namespace SAMCardFarmer
 {
@@ -192,7 +192,17 @@ namespace SAMCardFarmer
             InitializeComponent();
             FindSamExecutable();
             LoadConfiguredLanguage();
+            
+            // Clean up any orphan SAM.Game processes left from previous runs/crashes
+            try { KillAllSamProcesses(showLog: false); } catch { }
+
             this.Shown += (s, e) => {
+                // Check if any orphan processes were running and inform user
+                Process[] existing = GetActiveSamProcesses();
+                if (existing.Length > 0)
+                {
+                    KillAllSamProcesses(showLog: true);
+                }
                 if (!hasCustomCliFile)
                 {
                     LoadLastUsedBadgesFile();
@@ -202,7 +212,7 @@ namespace SAMCardFarmer
 
         private void InitializeComponent()
         {
-            this.Text = "SAM Card Farmer v1.01 - Steam Trading Card Idler";
+            this.Text = "SAM Card Farmer v1.02 - Steam Trading Card Idler";
             this.Size = new Size(1020, 780);
             this.MinimumSize = new Size(880, 620);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -507,8 +517,8 @@ namespace SAMCardFarmer
             currentLang = lang;
             bool isRu = (lang == "ru");
 
-            this.Text = isRu ? "SAM Card Farmer v1.01 - Автозапуск игр Steam с карточками"
-                             : "SAM Card Farmer v1.01 - Steam Trading Card Idler";
+            this.Text = isRu ? "SAM Card Farmer v1.02 - Автозапуск игр Steam с карточками"
+                             : "SAM Card Farmer v1.02 - Steam Trading Card Idler";
 
             btnOpenFile.Text = isRu ? "📂 ОТКРЫТЬ HTML-ФАЙЛ ЗНАЧКОВ"
                                     : "📂 OPEN BADGES HTML FILE";
@@ -1029,9 +1039,10 @@ namespace SAMCardFarmer
                 }
             }
 
+            int realProcs = GetActiveSamProcesses().Length;
             lblCountInfo.Text = (currentLang == "ru")
-                ? string.Format("Игр: {0} | Выбрано: {1} | Карточек: {2} шт. | Запущено: {3}", allLoadedGames.Count, checkedCount, totalDrops, runningProcesses.Count)
-                : string.Format("Games: {0} | Selected: {1} | Drops remaining: {2} | Running: {3}", allLoadedGames.Count, checkedCount, totalDrops, runningProcesses.Count);
+                ? string.Format("Игр: {0} | Выбрано: {1} | Карточек: {2} шт. | Запущено в системе: {3}", allLoadedGames.Count, checkedCount, totalDrops, realProcs)
+                : string.Format("Games: {0} | Selected: {1} | Drops remaining: {2} | Running in system: {3}", allLoadedGames.Count, checkedCount, totalDrops, realProcs);
         }
 
         private void ApplyFilter()
@@ -1217,6 +1228,29 @@ namespace SAMCardFarmer
                 catch { }
             }
 
+            // Remove exited processes from dictionary
+            List<int> exitedAppIds = new List<int>();
+            foreach (KeyValuePair<int, Process> kvp in runningProcesses)
+            {
+                try
+                {
+                    if (kvp.Value.HasExited)
+                    {
+                        exitedAppIds.Add(kvp.Key);
+                    }
+                }
+                catch { exitedAppIds.Add(kvp.Key); }
+            }
+            if (exitedAppIds.Count > 0)
+            {
+                foreach (int aid in exitedAppIds)
+                {
+                    runningProcesses.Remove(aid);
+                    UpdateGameStatus(aid, (currentLang == "ru") ? "Остановлена" : "Stopped", Color.FromArgb(237, 242, 244));
+                }
+                UpdateStats();
+            }
+
             if (pids.Count == 0) return;
 
             EnumWindows((hWnd, lParam) =>
@@ -1232,6 +1266,87 @@ namespace SAMCardFarmer
                 }
                 return true;
             }, IntPtr.Zero);
+        }
+
+                private Process[] GetActiveSamProcesses()
+        {
+            try
+            {
+                return Process.GetProcessesByName("SAM.Game");
+            }
+            catch
+            {
+                return new Process[0];
+            }
+        }
+
+        private void KillAllSamProcesses(bool showLog = true)
+        {
+            try
+            {
+                // Kill tracked
+                foreach (KeyValuePair<int, Process> kvp in runningProcesses)
+                {
+                    try
+                    {
+                        if (!kvp.Value.HasExited)
+                        {
+                            kvp.Value.Kill();
+                            kvp.Value.WaitForExit(1000);
+                        }
+                    }
+                    catch { }
+                }
+                runningProcesses.Clear();
+
+                // Kill any other SAM.Game processes in the system
+                Process[] procs = GetActiveSamProcesses();
+                int count = 0;
+                foreach (Process p in procs)
+                {
+                    try
+                    {
+                        p.Kill();
+                        p.WaitForExit(1500);
+                        count++;
+                    }
+                    catch { }
+                }
+
+                // Reset statuses in list
+                if (lvGames != null && this.IsHandleCreated)
+                {
+                    this.Invoke((Action)(() =>
+                    {
+                        foreach (ListViewItem item in lvGames.Items)
+                        {
+                            if (item.SubItems.Count > 3)
+                            {
+                                item.SubItems[3].Text = (currentLang == "ru") ? "Остановлена" : "Stopped";
+                                item.ForeColor = Color.FromArgb(237, 242, 244);
+                            }
+                        }
+                    }));
+                }
+
+                if (showLog && count > 0)
+                {
+                    Log((currentLang == "ru")
+                        ? string.Format("🧹 Закрыто и завершено {0} процессов SAM.Game в системе.", count)
+                        : string.Format("🧹 Killed and cleaned up {0} SAM.Game processes in system.", count));
+                }
+            }
+            catch (Exception ex)
+            {
+                if (showLog) Log("Ошибка при остановке процессов: " + ex.Message);
+            }
+            finally
+            {
+                if (this.IsHandleCreated)
+                {
+                    this.Invoke((Action)(() => UpdateStats()));
+                }
+            }
         }
 
         private bool StartSamProcess(BadgeGame g)
@@ -1363,7 +1478,8 @@ namespace SAMCardFarmer
         {
             try
             {
-                Log("⏰ [Авто-перезапуск] Мягкий перезапуск запущенных игр для сброса проверки дропа в Steam...");
+                // Pause timer while restart cycle is executing
+                restartTimer.Stop();
 
                 List<BadgeGame> toRestart = new List<BadgeGame>();
                 foreach (ListViewItem item in lvGames.Items)
@@ -1376,62 +1492,83 @@ namespace SAMCardFarmer
 
                 if (toRestart.Count == 0)
                 {
-                    Log("[Авто-перезапуск] Нет выбранных игр для перезапуска.");
-                    restartTimer.Stop();
+                    Log(currentLang == "ru" ? "[Перезапуск] Нет выбранных игр для перезапуска."
+                                            : "[Restart] No selected games to restart.");
                     return;
+                }
+
+                Log(currentLang == "ru" ? "⏰ [ПЕРЕЗАПУСК] Полное закрытие всех процессов перед повторным стартом..."
+                                        : "⏰ [RESTART] Completely closing all running processes before restarting...");
+
+                // Mark items in UI
+                foreach (BadgeGame g in toRestart)
+                {
+                    UpdateGameStatus(g.AppId, currentLang == "ru" ? "Перезапуск..." : "Restarting...", Color.FromArgb(241, 196, 15));
                 }
 
                 ThreadPool.QueueUserWorkItem(state =>
                 {
-                    List<Process> procsToKill = new List<Process>();
-                    if (this.IsHandleCreated)
+                    try
                     {
-                        this.Invoke((Action)(() =>
+                        // 1. Force kill ALL tracked and orphan SAM.Game processes
+                        KillAllSamProcesses(showLog: false);
+
+                        // 2. Wait 2 full seconds for Steam to cleanly detect session closure
+                        Thread.Sleep(2000);
+
+                        // 3. Verify zero processes remain alive
+                        Process[] remaining = GetActiveSamProcesses();
+                        if (remaining.Length > 0)
                         {
-                            foreach (KeyValuePair<int, Process> kvp in runningProcesses)
+                            foreach (Process p in remaining)
                             {
-                                procsToKill.Add(kvp.Value);
-                                UpdateGameStatus(kvp.Key, "Перезапуск...", Color.FromArgb(241, 196, 15));
+                                try { p.Kill(); p.WaitForExit(1000); } catch { }
                             }
-                            runningProcesses.Clear();
-                            UpdateStats();
-                        }));
-                    }
-
-                    foreach (Process p in procsToKill)
-                    {
-                        try
-                        {
-                            if (!p.HasExited) p.Kill();
+                            Thread.Sleep(500);
                         }
-                        catch { }
-                    }
 
-                    Thread.Sleep(1200);
+                        // 4. Start all selected games anew
+                        int restarted = 0;
+                        foreach (BadgeGame g in toRestart)
+                        {
+                            if (this.IsHandleCreated)
+                            {
+                                this.Invoke((Action)(() =>
+                                {
+                                    if (StartSamProcess(g))
+                                    {
+                                        restarted++;
+                                    }
+                                }));
+                            }
+                            Thread.Sleep(75);
+                        }
 
-                    int restarted = 0;
-                    foreach (BadgeGame g in toRestart)
-                    {
                         if (this.IsHandleCreated)
                         {
                             this.Invoke((Action)(() =>
                             {
-                                if (StartSamProcess(g))
+                                Log(currentLang == "ru"
+                                    ? string.Format("✓ [ПЕРЕЗАПУСК] Успех: все старые процессы закрыты, заново запущено {0} игр в скрытом фоне!", restarted)
+                                    : string.Format("✓ [RESTART] Success: all previous processes closed, started {0} games anew in background!", restarted));
+                                UpdateStats();
+
+                                // Resume auto-restart timer
+                                int restartMins = (int)numRestartInterval.Value;
+                                if (restartMins > 0)
                                 {
-                                    restarted++;
+                                    restartTimer.Interval = restartMins * 60 * 1000;
+                                    restartTimer.Start();
                                 }
                             }));
                         }
-                        Thread.Sleep(60);
                     }
-
-                    if (this.IsHandleCreated)
+                    catch (Exception ex)
                     {
-                        this.Invoke((Action)(() =>
+                        if (this.IsHandleCreated)
                         {
-                            Log(string.Format("✓ [Авто-перезапуск] Успешно перезапущено {0} игр в скрытом фоне.", restarted));
-                            UpdateStats();
-                        }));
+                            this.Invoke((Action)(() => Log("Ошибка перезапуска: " + ex.Message)));
+                        }
                     }
                 });
             }
@@ -1444,59 +1581,36 @@ namespace SAMCardFarmer
         private void BtnStopAll_Click(object sender, EventArgs e)
         {
             restartTimer.Stop();
-
-            int count = runningProcesses.Count;
-            foreach (KeyValuePair<int, Process> kvp in runningProcesses)
-            {
-                try
-                {
-                    if (!kvp.Value.HasExited)
-                    {
-                        kvp.Value.Kill();
-                    }
-                }
-                catch { }
-
-                UpdateGameStatus(kvp.Key, "Остановлена");
-            }
-
-            runningProcesses.Clear();
-            Log(string.Format("Остановлено {0} процессов SAM.", count));
+            Log(currentLang == "ru" ? "⏹ Остановка ВСЕХ процессов SAM.Game в системе..."
+                                    : "⏹ Stopping ALL SAM.Game processes in system...");
+            KillAllSamProcesses(showLog: true);
+            Log(currentLang == "ru" ? "✓ Все игры остановлены. Ни одного процесса SAM.Game не оставлено."
+                                    : "✓ All games stopped. Zero SAM.Game processes left running.");
             UpdateStats();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (fileWatcher != null)
+            try
             {
-                try { fileWatcher.EnableRaisingEvents = false; fileWatcher.Dispose(); } catch { }
-                fileWatcher = null;
-            }
-            if (reloadDebounceTimer != null)
-            {
-                try { reloadDebounceTimer.Dispose(); } catch { }
-                reloadDebounceTimer = null;
-            }
+                restartTimer.Stop();
+                windowHideTimer.Stop();
 
-            if (runningProcesses.Count > 0)
-            {
-                DialogResult dr = MessageBox.Show(
-                    "Остановить все запущенные игры SAM при выходе?",
-                    "Выход",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Question);
-
-                if (dr == DialogResult.Cancel)
+                if (fileWatcher != null)
                 {
-                    e.Cancel = true;
-                    return;
+                    try { fileWatcher.EnableRaisingEvents = false; fileWatcher.Dispose(); } catch { }
+                    fileWatcher = null;
+                }
+                if (reloadDebounceTimer != null)
+                {
+                    try { reloadDebounceTimer.Dispose(); } catch { }
+                    reloadDebounceTimer = null;
                 }
 
-                if (dr == DialogResult.Yes)
-                {
-                    BtnStopAll_Click(null, null);
-                }
+                // Unconditionally kill all SAM.Game processes on exit so none are left behind
+                KillAllSamProcesses(showLog: false);
             }
+            catch { }
         }
 
         public void LoadHtmlFileOnStartup(string path)

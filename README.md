@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v1.01-brightgreen?logo=github&logoColor=white" alt="Release v1.01">
+  <img src="https://img.shields.io/badge/Release-v1.02-brightgreen?logo=github&logoColor=white" alt="Release v1.02">
   <img src="https://img.shields.io/badge/Vibe%20Coded%20with-Google%20Antigravity-4285F4?logo=google&logoColor=white" alt="Vibe Coded with Google Antigravity">
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white" alt="Platform">
   <img src="https://img.shields.io/badge/Language-C%23-239120?logo=csharp&logoColor=white" alt="Language">
