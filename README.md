@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Vibe%20Coded%20with-Google%20Antigravity-4285F4?logo=google&logoColor=white" alt="Vibe Coded with Google Antigravity">
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white" alt="Platform">
   <img src="https://img.shields.io/badge/Language-C%23-239120?logo=csharp&logoColor=white" alt="Language">
   <img src="https://img.shields.io/badge/.NET-4.0%20%7C%204.7.2%20%7C%204.8%20%7C%208.0-512BD4?logo=dotnet&logoColor=white" alt=".NET">
@@ -13,6 +14,14 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
   <img src="https://img.shields.io/badge/Privacy-100%25%20Offline%20Safe-success" alt="Privacy">
 </p>
+
+---
+
+> [!NOTE]
+> ### 🤖 Vibe Coded with Google Antigravity / Навайбкожено через Antigravity
+> **Автор честно заявляет:** данный проект полностью **навайбкожен** с помощью ИИ-ассистента **Google Antigravity** (Advanced Agentic Coding)! Код не писался вручную строчка за строчкой с нуля — автор выступил в роли архитектора, тестировщика и постановщика задач (vibe coder), формулируя нужные функции и проверяя работу в Steam, пока агент Antigravity создавал C# WinForms код, Win32 фоновые хуки `SW_HIDE`, парсер HTML и автоматизацию.
+>
+> *This project was 100% **vibe-coded** using **Google Antigravity** AI assistant. The maintainer directed the vision, requirements, architecture, and testing, while the code and automation were generated collaboratively with AI.*
 
 ---
 
@@ -158,5 +167,6 @@ C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /codepage:65001 
 
 ## ❤️ Благодарности / Acknowledgements
 
-- **Rick (Gibbed)** и разработчикам [Steam Achievement Manager](https://github.com/gibbed/SteamAchievementManager) за создание легендарного инструмента для работы со Steam API.
+- **Google DeepMind / Antigravity Team** — за создание продвинутого ИИ-агента Antigravity, с помощью которого проект был полностью навайбкожен.
+- **Rick (Gibbed)** и разработчикам [Steam Achievement Manager](https://github.com/gibbed/SteamAchievementManager) за легендарный инструмент для работы со Steam API.
 - Сообществу Steam за поддержку открытых инструментов автоматизации.
