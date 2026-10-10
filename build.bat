@@ -21,7 +21,7 @@ exit /b 1
 
 :build_csc
 echo [*] Compiling via csc.exe...
-"%CSC%" /nologo /codepage:65001 /target:winexe /platform:anycpu /optimize+ /out:"%OUT_DIR%\SAM.CardFarmer.exe" /reference:System.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Xml.dll,System.Core.dll "src\SAMCardFarmer.cs"
+"%CSC%" /nologo /codepage:65001 /target:winexe /platform:anycpu /optimize+ /win32manifest:"%~dp0app.manifest" /win32icon:"%~dp0app.ico" /out:"%OUT_DIR%\SAM.CardFarmer.exe" /reference:System.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Xml.dll,System.Core.dll "src\SAMCardFarmer.cs"
 if errorlevel 1 (
     echo [ERROR] csc.exe compilation failed.
     exit /b 1

@@ -6,11 +6,23 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
+
+[assembly: AssemblyTitle("SAM Card Farmer")]
+[assembly: AssemblyDescription("Lightweight Steam Trading Card Idler Companion for SAM")]
+[assembly: AssemblyConfiguration("Release")]
+[assembly: AssemblyCompany("SAM Card Farmer Open Source Community")]
+[assembly: AssemblyProduct("SAM Card Farmer")]
+[assembly: AssemblyCopyright("Copyright (c) 2026 Open Source Community")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
 
 namespace SAMCardFarmer
 {
